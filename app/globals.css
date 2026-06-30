@@ -107,6 +107,12 @@
 }
 
 /* Base styles */
+@layer base {
+  button {
+    cursor: pointer;
+  }
+}
+
 body {
   background: var(--color-background);
   color: var(--foreground);

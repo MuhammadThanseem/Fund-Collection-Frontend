@@ -72,13 +72,13 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-1.5 flex-shrink-0">
-        <button className="relative p-1.5 text-slate-500 hover:text-[#003527] hover:bg-slate-50 rounded-lg transition-colors">
+        <Link href="/admin/notifications" className="relative p-1.5 text-slate-500 hover:text-[#003527] hover:bg-slate-50 rounded-lg transition-colors">
           <FiBell className="text-lg" />
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#006c49] rounded-full ring-1 ring-white" />
-        </button>
-        <button className="hidden sm:flex p-1.5 text-slate-500 hover:text-[#003527] hover:bg-slate-50 rounded-lg transition-colors">
+        </Link>
+        <Link href="/admin/settings" className="hidden sm:flex p-1.5 text-slate-500 hover:text-[#003527] hover:bg-slate-50 rounded-lg transition-colors">
           <FiSettings className="text-lg" />
-        </button>
+        </Link>
         <div className="w-8 h-8 rounded-full bg-[#003527] text-white flex items-center justify-center text-xs font-bold ring-2 ring-[#003527]/10 ml-1">
           IA
         </div>

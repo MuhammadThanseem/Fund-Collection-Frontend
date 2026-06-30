@@ -109,13 +109,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Footer */}
         <div className="px-3 pb-3 border-t border-white/10 pt-3 space-y-0.5 flex-shrink-0">
-          <a
-            href="#"
+          <Link
+            href="/admin/help"
+            onClick={onClose}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/55 hover:bg-white/10 hover:text-white transition-colors"
           >
             <FiHelpCircle className="text-lg flex-shrink-0" />
             Help Center
-          </a>
+          </Link>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/55 hover:bg-white/10 hover:text-white transition-colors"

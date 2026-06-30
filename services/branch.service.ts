@@ -5,9 +5,22 @@ export interface Branch {
   _id: string;
   name: string;
   location: string;
+  panchayath?: string;
+  district?: string;
+  state?: string;
+  pincode?: string;
   createdBy?: { _id: string; name: string };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BranchPayload {
+  name: string;
+  location: string;
+  panchayath?: string;
+  district?: string;
+  state?: string;
+  pincode?: string;
 }
 
 export async function getBranches(): Promise<Branch[]> {
@@ -26,7 +39,7 @@ export async function getBranchById(id: string): Promise<Branch> {
   }
 }
 
-export async function createBranch(payload: { name: string; location: string }): Promise<Branch> {
+export async function createBranch(payload: BranchPayload): Promise<Branch> {
   try {
     return await api.post("/branches", payload);
   } catch (error) {
@@ -34,7 +47,7 @@ export async function createBranch(payload: { name: string; location: string }):
   }
 }
 
-export async function updateBranch(id: string, payload: { name?: string; location?: string }): Promise<Branch> {
+export async function updateBranch(id: string, payload: Partial<BranchPayload>): Promise<Branch> {
   try {
     return await api.put(`/branches/${id}`, payload);
   } catch (error) {
