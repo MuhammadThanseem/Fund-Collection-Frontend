@@ -5,22 +5,135 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Tailwind v4 theme tokens */
+@theme {
+  /* COLORS */
+  --color-inverse-primary: #95d3ba;
+  --color-outline: #707974;
+  --color-secondary-fixed-dim: #4edea3;
+  --color-on-tertiary-fixed-variant: #3d4947;
+  --color-background: #f8f9ff;
+  --color-on-tertiary-container: #a8b5b2;
+  --color-inverse-on-surface: #eaf1ff;
+  --color-error-container: #ffdad6;
+  --color-primary-fixed: #b0f0d6;
+  --color-on-primary-fixed: #002117;
+  --color-on-secondary-container: #00714d;
+  --color-on-background: #121c2a;
+  --color-tertiary-fixed-dim: #bcc9c6;
+  --color-primary: #003527;
+  --color-on-primary: #ffffff;
+  --color-on-secondary-fixed-variant: #005236;
+  --color-on-surface: #121c2a;
+  --color-on-primary-container: #80bea6;
+  --color-surface-container-high: #dee9fc;
+  --color-on-secondary-fixed: #002113;
+  --color-surface-variant: #d9e3f6;
+  --color-surface-dim: #d0dbed;
+  --color-tertiary: #25312f;
+  --color-secondary-container: #6cf8bb;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #3b4745;
+  --color-secondary-fixed: #6ffbbe;
+  --color-surface-container: #e6eeff;
+  --color-on-error: #ffffff;
+  --color-primary-fixed-dim: #95d3ba;
+  --color-primary-container: #064e3b;
+  --color-on-surface-variant: #404944;
+  --color-surface-container-highest: #d9e3f6;
+  --color-on-error-container: #93000a;
+  --color-tertiary-fixed: #d8e5e2;
+  --color-error: #ba1a1a;
+  --color-on-secondary: #ffffff;
+  --color-inverse-surface: #27313f;
+  --color-secondary: #006c49;
+  --color-outline-variant: #bfc9c3;
+  --color-surface-bright: #f8f9ff;
+  --color-on-tertiary-fixed: #121e1c;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-primary-fixed-variant: #0b513d;
+  --color-surface-container-low: #eff4ff;
+  --color-surface: #f8f9ff;
+  --color-surface-tint: #2b6954;
+
+  /* BORDER RADIUS */
+  --radius: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* SPACING */
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 48px;
+  --spacing-container-max: 1280px;
+  --spacing-gutter: 24px;
+  --spacing-unit: 8px;
+
+  /* FONT FAMILY */
+  --font-headline-md: "Inter", sans-serif;
+  --font-display-xl: "Inter", sans-serif;
+  --font-label-sm: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-headline-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+
+  /* FONT SIZE */
+  --text-headline-md: 32px;
+  --text-headline-md--line-height: 40px;
+  --text-headline-md--font-weight: 500;
+
+  --text-display-xl: 64px;
+  --text-display-xl--line-height: 72px;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-xl--font-weight: 600;
+
+  --text-label-sm: 14px;
+  --text-label-sm--line-height: 20px;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-headline-lg: 40px;
+  --text-headline-lg--line-height: 48px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base styles */
 body {
-  background: var(--background);
+  background: var(--color-background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom styles */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ethereal-bg {
+  background:
+    radial-gradient(circle at 0% 0%, #f0fdf4 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, #ecfdf5 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, #f8f9ff 0%, transparent 100%);
+}
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.dark .glass-card {
+  background: rgba(6, 78, 59, 0.2);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }

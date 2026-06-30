@@ -1,13 +1,14 @@
 import api from "@/lib/axios.service";
 import { handleApiError } from "@/lib/errorHandler";
+import { setToken } from "@/lib/auth.storage";
 
 export interface LoginPayload {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 export interface LoginResponse {
-  accessToken: string;
+  token: string;
   user: {
     id: string;
     name: string;
@@ -25,9 +26,7 @@ export async function login(payload: LoginPayload): Promise<LoginApiResponse> {
   try {
     const response = await api.post<LoginResponse>("/auth/login", payload);
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("accessToken", response.data.accessToken);
-    }
+    setToken(response.data.token);
 
     return {
       data: response.data,

@@ -1,18 +1,14 @@
 import Sidebar from "@/components/SideBar";
-import Topbar from "@/components/TopBar";
+import TopBar from "@/components/TopBar";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-gray-50 flex h-screen">
-      <Sidebar role="manager" userName="Alex Johnson" />
-      <div className="flex-1 flex flex-col">
-        <Topbar />
-        <main className="p-6 overflow-y-auto">{children}</main>
-      </div>
+    <div className="min-h-screen bg-[#f8f9ff]">
+      <Sidebar />
+      <TopBar />
+      <main className="ml-56 pt-14 min-h-screen">
+        <div className="p-8">{children}</div>
+      </main>
     </div>
   );
 }
