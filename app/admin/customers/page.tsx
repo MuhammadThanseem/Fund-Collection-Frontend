@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiSearch, FiUser } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiSearch, FiUser, FiFilter } from "react-icons/fi";
 import {
   getCustomers, createCustomer, updateCustomer, deleteCustomer,
   type Customer, type CreateCustomerPayload,
@@ -28,8 +28,9 @@ function Modal({ open, title, onClose, children }: { open: boolean; title: strin
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [loading,      setLoading]      = useState(true);
+  const [search,       setSearch]       = useState("");
+  const [filterBranch, setFilterBranch] = useState("ALL");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState<CreateCustomerPayload>({ name: "", phone: "", address: "", boxNumber: "", branchId: "" });
@@ -97,52 +98,81 @@ export default function CustomersPage() {
     }
   };
 
-  const filtered = customers.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) ||
-      c.boxNumber.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = customers.filter((c) => {
+    const branchId = typeof c.branchId === "object" ? c.branchId._id : (c.branchId as string);
+    const q = search.toLowerCase();
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.phone.includes(search) || c.boxNumber.toLowerCase().includes(q);
+    const matchBranch = filterBranch === "ALL" || branchId === filterBranch;
+    return matchSearch && matchBranch;
+  });
+
+  const isFiltered = filtered.length !== customers.length;
 
   return (
-    <div>
-      <div className="flex justify-between items-start mb-8">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#003527]">Customers</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage fund collection customers.</p>
+          <h1 className="text-2xl lg:text-3xl font-bold text-[#003527] tracking-tight">Customers</h1>
+          <p className="text-slate-500 text-sm mt-1">Manage AIC Fund Collection customers.</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-[#003527] text-white text-sm font-semibold rounded-xl hover:bg-[#064e3b] transition-colors shadow-sm">
-          <FiPlus />
-          Add Customer
+        <button onClick={openCreate} className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#003527] text-white text-sm font-semibold rounded-xl hover:bg-[#064e3b] active:scale-[0.98] transition-all shadow-md shadow-[#003527]/20 self-start">
+          <FiPlus /> Add Customer
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Total Customers</p>
-          <p className="text-3xl font-bold text-[#003527]">{customers.length}</p>
-        </div>
-        <div className="bg-[#003527] rounded-2xl p-5 shadow-sm">
-          <p className="text-xs text-white/60 uppercase tracking-widest font-semibold mb-2">Branches Covered</p>
-          <p className="text-3xl font-bold text-white">{branches.length}</p>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {[
+          { label: "Total Customers",   value: customers.length,                                             dark: false },
+          { label: "Branches Covered",  value: branches.length,                                              dark: true  },
+          { label: "Filtered Results",  value: isFiltered ? filtered.length : "—",                          dark: false },
+        ].map(({ label, value, dark }) => (
+          <div key={label} className={`rounded-2xl p-5 shadow-sm ${dark ? "bg-[#003527]" : "bg-white border border-slate-100"}`}>
+            <p className={`text-xs uppercase tracking-widest font-semibold mb-2 ${dark ? "text-white/60" : "text-slate-400"}`}>{label}</p>
+            <p className={`text-3xl font-bold ${dark ? "text-white" : "text-[#003527]"}`}>{loading ? "—" : value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
-          <h2 className="text-base font-bold text-[#003527]">All Customers</h2>
-          <div className="relative">
+        {/* Filter bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 border-b border-slate-100">
+          <div className="relative flex-1">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
             <input
               type="text"
-              placeholder="Search customers..."
+              placeholder="Search by name, phone or box number…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-4 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#003527]/20 placeholder-slate-400"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#003527]/20 placeholder-slate-400"
             />
           </div>
+          <div className="flex items-center gap-2">
+            <FiFilter className="text-slate-400 text-sm flex-shrink-0" />
+            <select
+              value={filterBranch}
+              onChange={(e) => setFilterBranch(e.target.value)}
+              className="text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#003527]/20 text-slate-600 font-medium"
+            >
+              <option value="ALL">All Branches</option>
+              {branches.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
+            </select>
+            {(search || filterBranch !== "ALL") && (
+              <button
+                onClick={() => { setSearch(""); setFilterBranch("ALL"); }}
+                className="text-xs text-slate-400 hover:text-red-500 font-semibold px-2 py-2 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="px-6 py-2.5 bg-slate-50/40 border-b border-slate-100">
+          <p className="text-xs text-slate-400 font-medium">
+            {loading ? "Loading…" : `${filtered.length} customer${filtered.length !== 1 ? "s" : ""}${isFiltered ? ` (filtered from ${customers.length})` : ""}`}
+          </p>
         </div>
 
         <div className="overflow-x-auto">
@@ -161,9 +191,18 @@ export default function CustomersPage() {
               {loading ? (
                 <tr><td colSpan={6} className="text-center text-slate-400 py-10">Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="text-center text-slate-400 py-10">
-                  {search ? "No results found." : "No customers yet."}
-                </td></tr>
+                <tr>
+                  <td colSpan={6} className="text-center py-12">
+                    <p className="text-slate-400 text-sm">
+                      {search || filterBranch !== "ALL" ? "No customers match your filters." : "No customers yet."}
+                    </p>
+                    {(search || filterBranch !== "ALL") && (
+                      <button onClick={() => { setSearch(""); setFilterBranch("ALL"); }} className="mt-2 text-xs text-[#006c49] font-semibold hover:underline">
+                        Clear filters
+                      </button>
+                    )}
+                  </td>
+                </tr>
               ) : filtered.map((c) => (
                 <tr key={c._id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-3">

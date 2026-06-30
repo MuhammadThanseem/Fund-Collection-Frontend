@@ -15,23 +15,27 @@ const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov
 const PIE_COLORS = ["#003527","#006c49","#4edea3","#6cf8bb","#b0f0d6","#064e3b"];
 
 function formatCurrency(n: number) {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
-  return `$${n}`;
+  if (n >= 1_000_000) return `₹${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1)}K`;
+  return `₹${n}`;
 }
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
+
 export default function ReportsPage() {
-  const year = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [summary, setSummary] = useState({ totalCollection: 0, thisMonthCollection: 0 });
   const [monthly, setMonthly] = useState<MonthlyData[]>([]);
   const [branchWise, setBranchWise] = useState<BranchWiseData[]>([]);
   const [collectorWise, setCollectorWise] = useState<CollectorWiseData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMonthly, setLoadingMonthly] = useState(false);
 
   useEffect(() => {
     Promise.all([
       getDashboardSummary(),
-      getMonthlyCollection(year),
+      getMonthlyCollection(selectedYear),
       getBranchWiseCollection(),
       getCollectorWiseCollection(),
     ])
@@ -44,6 +48,16 @@ export default function ReportsPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  // Refetch only monthly data when year changes (after initial load)
+  useEffect(() => {
+    if (loading) return;
+    setLoadingMonthly(true);
+    getMonthlyCollection(selectedYear)
+      .then(setMonthly)
+      .catch(console.error)
+      .finally(() => setLoadingMonthly(false));
+  }, [selectedYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const monthlyChartData = MONTHS.map((name, i) => {
     const entry = monthly.find((d) => d._id === i + 1);
@@ -68,14 +82,14 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#003527]">Reports & Analytics</h1>
-        <p className="text-slate-500 text-sm mt-1">Comprehensive insights into fund collection performance.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl lg:text-3xl font-bold text-[#003527] tracking-tight">Reports & Analytics</h1>
+        <p className="text-slate-500 text-sm mt-1">Comprehensive insights into AIC Fund Collection performance.</p>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-5">
         {statCards.map(({ label, value, icon: Icon }) => (
           <div key={label} className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
             <div className="w-9 h-9 rounded-xl bg-[#e8f5ef] flex items-center justify-center mb-3">
@@ -88,13 +102,26 @@ export default function ReportsPage() {
       </div>
 
       {/* Monthly chart */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm mb-6">
-        <div className="mb-5">
-          <h3 className="text-base font-bold text-[#003527]">Monthly Collections — {year}</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Collection amounts by month</p>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          <div>
+            <h3 className="text-base font-bold text-[#003527]">Monthly Collections — {selectedYear}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Collection amounts by month</p>
+          </div>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#003527]/20 text-slate-600 font-medium self-start sm:self-auto"
+          >
+            {YEAR_OPTIONS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
         </div>
-        {loading ? (
-          <div className="h-56 flex items-center justify-center text-slate-400">Loading…</div>
+        {loading || loadingMonthly ? (
+          <div className="h-56 flex items-center justify-center text-slate-400">
+            {loadingMonthly ? `Loading ${selectedYear} data…` : "Loading…"}
+          </div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlyChartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
@@ -112,7 +139,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Branch + Collector charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Branch pie */}
         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <h3 className="text-base font-bold text-[#003527] mb-1">Collection by Branch</h3>
