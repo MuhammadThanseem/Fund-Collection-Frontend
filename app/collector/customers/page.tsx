@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import {
   FiSearch, FiFilter, FiChevronRight, FiClock,
   FiCheckCircle, FiAlertCircle, FiHome, FiMapPin,
@@ -440,12 +440,11 @@ export default function CollectorCustomersPage() {
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
                 .map((p, idx, arr) => (
-                  <>
+                  <Fragment key={p}>
                     {idx > 0 && arr[idx - 1] !== p - 1 && (
-                      <span key={`ellipsis-${p}`} className="px-1 text-slate-300 text-sm">…</span>
+                      <span className="px-1 text-slate-300 text-sm">…</span>
                     )}
                     <button
-                      key={p}
                       onClick={() => setPage(p)}
                       className={`w-8 h-8 rounded-lg text-sm font-semibold transition-all ${
                         p === page
@@ -455,7 +454,7 @@ export default function CollectorCustomersPage() {
                     >
                       {p}
                     </button>
-                  </>
+                  </Fragment>
                 ))}
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
