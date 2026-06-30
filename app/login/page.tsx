@@ -23,8 +23,11 @@ export default function LoginPage() {
       const response = await login({ identifier, password });
 
       if (response.status === 200) {
-        if (response.data.user.role == "SUPER_ADMIN") {
+        const role = response.data.user.role;
+        if (role === "SUPER_ADMIN" || role === "BRANCH_ADMIN") {
           router.push("/admin");
+        } else if (role === "COLLECTOR") {
+          router.push("/collector");
         }
       }
     } catch (err: any) {

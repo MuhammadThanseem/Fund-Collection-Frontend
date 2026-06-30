@@ -16,8 +16,6 @@ export interface Collection {
 
 export interface CreateCollectionPayload {
   customerId: string;
-  collectorId: string;
-  branchId: string;
   amount: number;
   month: number;
   year: number;

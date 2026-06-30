@@ -1,14 +1,138 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
   FiSearch, FiFilter, FiChevronRight, FiClock,
   FiCheckCircle, FiAlertCircle, FiHome, FiMapPin,
 } from "react-icons/fi";
+
+type AddCustomerForm = {
+  name: string;
+  phone: string;
+  address: string;
+  boxNumber: string;
+};
+
+function branchLabel(branch: Branch): string {
+  return [branch.panchayath, branch.district, branch.state]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function AddCustomerModal({
+  onClose,
+  onAdded,
+}: {
+  onClose: () => void;
+  onAdded: (c: Customer) => void;
+}) {
+  const [form, setForm] = useState<AddCustomerForm>({ name: "", phone: "", address: "", boxNumber: "" });
+  const [branch, setBranch] = useState<Branch | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const user = getUser();
+    if (user?.branchId) {
+      getBranchById(user.branchId).then(setBranch).catch(() => {});
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    const user = getUser();
+    if (!user?.branchId) { setError("Session expired. Please log in again."); return; }
+    setSaving(true);
+    try {
+      const customer = await createCustomer({ ...form, branchId: user.branchId });
+      onAdded(customer);
+      onClose();
+    } catch (err: any) {
+      setError(err.message || "Failed to add customer");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = "w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#003527]/20 focus:border-[#003527] bg-white placeholder-slate-400";
+
+  const field = (key: keyof AddCustomerForm, label: string, placeholder: string, required = true) => (
+    <div className="space-y-1">
+      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</label>
+      <input
+        required={required}
+        value={form[key]}
+        onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+        placeholder={placeholder}
+        className={inputCls}
+      />
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+          <h2 className="text-base font-bold text-[#003527]">Add New Household</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+            <FiX className="text-lg" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+          {field("name",      "Household Name", "e.g. Ahmed Family")}
+          {field("phone",     "Phone Number",   "e.g. 9876543210")}
+          {field("boxNumber", "Box Number",     "e.g. BOX-001")}
+
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">House / Street</label>
+            <input
+              value={form.address}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+              placeholder="Door no. / street name"
+              className={inputCls}
+            />
+            {branch && (
+              <div className="flex items-start gap-2 mt-1.5 px-1">
+                <FiMapPin className="text-[#006c49] text-xs mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-slate-500 leading-snug">
+                  <span className="font-semibold text-[#003527]">{branch.name}</span>
+                  {branchLabel(branch) && (
+                    <span className="text-slate-400"> — {branchLabel(branch)}</span>
+                  )}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 bg-[#003527] text-white rounded-xl text-sm font-bold hover:bg-[#064e3b] disabled:opacity-60 transition-colors"
+            >
+              {saving ? "Saving…" : "Add Household"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 import { MdOutlineHouse, MdOutlineApartment, MdOutlineVilla } from "react-icons/md";
-import { getCustomers, type Customer } from "@/services/customer.service";
+import { getCustomers, createCustomer, type Customer } from "@/services/customer.service";
 import { getCollections } from "@/services/collection.service";
+import { getBranchById, type Branch } from "@/services/branch.service";
+import { getUser } from "@/lib/auth.storage";
+import { FiX, FiPlus } from "react-icons/fi";
 
 const ICONS = [MdOutlineHouse, MdOutlineApartment, MdOutlineVilla, FiHome];
 
@@ -49,6 +173,7 @@ export default function CollectorCustomersPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"ALL" | CustomerStatus>("ALL");
   const [page, setPage] = useState(1);
+  const [showAddModal, setShowAddModal] = useState(false);
   const PER_PAGE = 8;
 
   useEffect(() => {
@@ -94,6 +219,13 @@ export default function CollectorCustomersPage() {
 
   return (
     <div className="space-y-6">
+      {showAddModal && (
+        <AddCustomerModal
+          onClose={() => setShowAddModal(false)}
+          onAdded={(c) => setCustomers((prev) => [c, ...prev])}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
@@ -113,12 +245,13 @@ export default function CollectorCustomersPage() {
             <FiFilter className="text-slate-400 text-sm" />
             Filter View
           </button>
-          <Link
-            href="/collector/collections"
+          <button
+            onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#003527] text-white text-sm font-bold rounded-xl hover:bg-[#064e3b] active:scale-[0.98] transition-all shadow-lg shadow-[#003527]/20"
           >
-            Assign New Zone
-          </Link>
+            <FiPlus className="text-base" />
+            Add Household
+          </button>
         </div>
       </div>
 

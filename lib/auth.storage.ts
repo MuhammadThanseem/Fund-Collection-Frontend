@@ -12,3 +12,14 @@ export const setToken = (token: string) => {
 export const clearToken = () => {
   localStorage.removeItem(TOKEN_KEY);
 };
+
+export const getUser = (): { id: string; role: string; branchId: string } | null => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload;
+  } catch {
+    return null;
+  }
+};

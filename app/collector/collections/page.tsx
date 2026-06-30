@@ -7,7 +7,6 @@ import {
 import { MdOutlineHouse } from "react-icons/md";
 import { getCollections, createCollection, type Collection } from "@/services/collection.service";
 import { getCustomers, type Customer } from "@/services/customer.service";
-import { getBranches, type Branch } from "@/services/branch.service";
 
 const MONTHS = [
   "Jan","Feb","Mar","Apr","May","Jun",
@@ -18,7 +17,6 @@ const QUICK_AMOUNTS = [100, 500, 1000];
 
 export default function CollectorCollectionsPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [branches,  setBranches]  = useState<Branch[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading,   setLoading]   = useState(true);
 
@@ -32,10 +30,9 @@ export default function CollectorCollectionsPage() {
   const today = new Date();
 
   useEffect(() => {
-    Promise.all([getCustomers(), getBranches(), getCollections()])
-      .then(([c, b, cols]) => {
+    Promise.all([getCustomers(), getCollections()])
+      .then(([c, cols]) => {
         setCustomers(c);
-        setBranches(b);
         setCollections(cols);
         if (c.length > 0) setSelectedCustomer(c[0]);
       })
@@ -55,22 +52,14 @@ export default function CollectorCollectionsPage() {
       setError("Please select a customer and enter a valid amount.");
       return;
     }
-    const branch = selectedCustomer.branchId;
-    const branchId = typeof branch === "object" ? (branch as Branch)._id : branch as string;
-    if (!branchId) {
-      setError("Customer has no branch assigned.");
-      return;
-    }
     setSaving(true);
     setError("");
     try {
       await createCollection({
-        customerId:  selectedCustomer._id,
-        collectorId: "",
-        branchId,
-        amount:  Number(amount),
-        month:   today.getMonth() + 1,
-        year:    today.getFullYear(),
+        customerId: selectedCustomer._id,
+        amount:     Number(amount),
+        month:      today.getMonth() + 1,
+        year:       today.getFullYear(),
         notes,
       });
       setSuccess(true);
@@ -85,17 +74,6 @@ export default function CollectorCollectionsPage() {
       setSaving(false);
     }
   };
-
-  const selectedBranch =
-    selectedCustomer
-      ? branches.find(
-          (b) =>
-            b._id ===
-            (typeof selectedCustomer.branchId === "object"
-              ? (selectedCustomer.branchId as Branch)._id
-              : selectedCustomer.branchId)
-        )
-      : null;
 
   const customerCollected = selectedCustomer
     ? thisMonthCols.some(
@@ -333,11 +311,6 @@ export default function CollectorCollectionsPage() {
               {saving ? "Recording…" : "Confirm Collection"}
             </button>
 
-            {selectedBranch && (
-              <p className="text-center text-white/40 text-xs mt-3">
-                Branch: {selectedBranch.name}
-              </p>
-            )}
           </div>
 
           {/* Month summary */}
